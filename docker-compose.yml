@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  iseeyou:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - ISEEYOU_SECRET=${ISEEYOU_SECRET}
+      - ISEEYOU_ADMIN_PASS_HASH=${ISEEYOU_ADMIN_PASS_HASH}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    restart: unless-stopped
+  redis:
+    image: redis:7.0-alpine
+    restart: unless-stopped

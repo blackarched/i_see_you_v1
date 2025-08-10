@@ -1,0 +1,42 @@
+[server]
+# If true, the Flask web dashboard and API will be enabled.
+enable_api = true
+
+[network]
+# The IP address range of your local network in CIDR notation.
+# This is used by the active scanner.
+subnet = 192.168.1.0/24
+
+# The name of the network adapter for the passive sniffer to listen on.
+# On Linux/macOS, find with `ip addr` (e.g., eth0, en0).
+# On Windows, find with `ipconfig` (e.g., Ethernet, Wi-Fi).
+interface = eth0
+
+# The interval in seconds for the active scanner to run.
+scan_interval = 300
+
+[logging]
+# The logging level. Recommended: INFO, DEBUG
+level = INFO
+
+# The path to the log file. Logs are automatically rotated.
+file_path = iseeyou.log
+
+# Set to 'true' to enable structured JSON logging for machine readability.
+json_format = true
+
+[dashboard]
+# A secret token required to access the dashboard and API.
+# CHANGE THIS to a long, random string for production.
+auth_token = <do-not-store-sensitive-values-in-repo>
+
+# The lifetime of the auth token in seconds. After this period,
+# the server will need to be restarted to generate a new token session.
+# 86400 seconds = 24 hours.
+token_lifetime_seconds = 86400
+
+# Set to 'true' to enable HTTPS on the dashboard.
+# For production, replace 'adhoc' with paths to your real SSL certificate and key.
+enable_https = true
+ssl_cert_path = /path/to/cert.pem
+ssl_key_path = /path/to/key.pem

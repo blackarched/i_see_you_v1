@@ -1,0 +1,40 @@
+entities/NetworkLog.json
+
+{
+    "name": "NetworkLog",
+    "type": "object",
+    "properties": {
+        "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Log entry timestamp"
+        },
+        "level": {
+            "type": "string",
+            "enum": ["INFO", "WARNING", "ERROR", "DEBUG", "CRITICAL"],
+            "description": "Log level"
+        },
+        "service": {
+            "type": "string",
+            "description": "Service that generated the log"
+        },
+        "message": {
+            "type": "string",
+            "description": "Log message content"
+        },
+        "ip_address": {
+            "type": "string",
+            "description": "Related IP address if applicable"
+        },
+        "event_type": {
+            "type": "string",
+            "enum": ["scan", "discovery", "alert", "system", "network", "security"],
+            "description": "Type of event"
+        },
+        "details": {
+            "type": "object",
+            "description": "Additional event details as JSON"
+        }
+    },
+    "required": ["level", "message"]
+}

@@ -1,0 +1,51 @@
+entities/SystemHealth.json
+
+{
+    "name": "SystemHealth",
+    "type": "object",
+    "properties": {
+        "service_name": {
+            "type": "string",
+            "description": "Name of the system service"
+        },
+        "status": {
+            "type": "string",
+            "enum": ["running", "stopped", "error", "warning"],
+            "description": "Service status"
+        },
+        "cpu_usage": {
+            "type": "number",
+            "description": "CPU usage percentage"
+        },
+        "memory_usage": {
+            "type": "number",
+            "description": "Memory usage percentage"
+        },
+        "uptime": {
+            "type": "number",
+            "description": "Service uptime in seconds"
+        },
+        "last_scan_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last network scan timestamp"
+        },
+        "devices_discovered": {
+            "type": "number",
+            "description": "Number of devices discovered in last scan"
+        },
+        "network_utilization": {
+            "type": "number",
+            "description": "Network utilization percentage"
+        },
+        "active_connections": {
+            "type": "number",
+            "description": "Number of active network connections"
+        },
+        "threat_alerts": {
+            "type": "number",
+            "description": "Number of active threat alerts"
+        }
+    },
+    "required": ["service_name", "status"]
+}

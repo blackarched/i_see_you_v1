@@ -1,0 +1,62 @@
+entities/Device.json
+
+{
+    "name": "Device",
+    "type": "object",
+    "properties": {
+        "ip_address": {
+            "type": "string",
+            "description": "IP address of the device"
+        },
+        "hostname": {
+            "type": "string",
+            "description": "Device hostname"
+        },
+        "mac_address": {
+            "type": "string",
+            "description": "MAC address of the device"
+        },
+        "device_type": {
+            "type": "string",
+            "enum": ["router", "switch", "server", "workstation", "mobile", "iot", "printer", "camera", "unknown"],
+            "description": "Type of device detected"
+        },
+        "vendor": {
+            "type": "string",
+            "description": "Device vendor/manufacturer"
+        },
+        "status": {
+            "type": "string",
+            "enum": ["online", "offline", "warning", "critical"],
+            "default": "online",
+            "description": "Current device status"
+        },
+        "last_seen": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last time device was detected"
+        },
+        "response_time": {
+            "type": "number",
+            "description": "Response time in milliseconds"
+        },
+        "open_ports": {
+            "type": "array",
+            "items": {
+                "type": "number"
+            },
+            "description": "List of open ports detected"
+        },
+        "os_info": {
+            "type": "string",
+            "description": "Operating system information"
+        },
+        "threat_level": {
+            "type": "string",
+            "enum": ["safe", "low", "medium", "high", "critical"],
+            "default": "safe",
+            "description": "Security threat assessment"
+        }
+    },
+    "required": ["ip_address"]
+}

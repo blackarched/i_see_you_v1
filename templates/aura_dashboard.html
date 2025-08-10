@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - Network Analysis Suite</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='aura_style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="dashboard-title">AURA</h1>
+            <div class="filter-section">
+                <input type="text" class="filter-input" placeholder="🔍 FILTER DEVICES..." id="filterInput">
+                <span class="warning-icon tooltip" data-tooltip="Real-time filtering of device list below">⚠️</span>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="interface-control">
+                <h3 class="section-title">INTERFACE STATUS</h3>
+                <div class="interface-item">
+                    <div class="interface-info">
+                        <div class="interface-icon pink">📡</div>
+                        <div class="interface-details">
+                            <div class="interface-name" id="interfaceName">wlan0</div>
+                            <div class="interface-mode" id="interfaceMode">MODE: MONITORING</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="live-graph">
+                <h3 class="section-title">LIVE NETWORK VISUALIZATION</h3>
+                <div class="graph-container">
+                    <div class="graph-grid"></div>
+                    <canvas id="networkGraph" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="scanner-section">
+            <h3 class="section-title">DEVICE SCANNER</h3>
+            <div class="scanner-controls">
+                <div class="scan-type">
+                    <span id="scanStatusIndicator" class="status-indicator online"></span>
+                    ACTIVE PROBE
+                </div>
+                <button class="scan-btn" id="scanBtn">▶ INITIATE SCAN</button>
+            </div>
+            <div class="scan-status" id="scanStatusText">
+                Awaiting scan command.
+            </div>
+        </div>
+
+        <div class="target-intel" id="targetIntelSection">
+            <h3 class="section-title">DEVICE INTEL</h3>
+            <div class="intel-icon">🖥️</div>
+            <div class="intel-message">No device locked. Select an entry from the list below.</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(event, 'devices')">DEVICES</button>
+            <button class="tab" onclick="switchTab(event, 'attacks')">ATTACK MODULES</button>
+            <button class="tab" onclick="switchTab(event, 'logs')">LOGS</button>
+        </div>
+
+        <div class="tab-content active" id="devices">
+            <div class="network-list" id="deviceList">
+                </div>
+        </div>
+
+        <div class="tab-content" id="attacks">
+            <div class="attack-modules">
+                <div class="module-card">
+                    <h4 class="module-title">HANDSHAKE CAPTURE</h4>
+                    <p class="module-description">Perform deauth attacks and capture WPA2/WPA3 handshakes.</p>
+                    <div class="module-actions">
+                        <button class="action-btn primary" disabled>LAUNCH</button>
+                        <span class="tooltip" data-tooltip="This feature requires a Wi-Fi pentesting backend.">
+                            <button class="action-btn" disabled>CONFIG</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="module-card">
+                    <h4 class="module-title">EVIL TWIN</h4>
+                    <p class="module-description">Create rogue access points to harvest credentials.</p>
+                    <div class="module-actions">
+                        <button class="action-btn primary" disabled>LAUNCH</button>
+                         <span class="tooltip" data-tooltip="This feature requires a Wi-Fi pentesting backend.">
+                            <button class="action-btn" disabled>CONFIG</button>
+                        </span>
+                    </div>
+                </div>
+                </div>
+        </div>
+
+        <div class="tab-content" id="logs">
+            <div class="log-console" id="logConsole">
+                </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='aura_script.js') }}"></script>
+</body>
+</html>
