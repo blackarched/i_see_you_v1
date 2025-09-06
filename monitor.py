@@ -37,15 +37,17 @@ import time
 class PassiveMonitor:
     """A class to passively monitor network traffic for device discovery."""
 
-    def __init__(self, interface: str, device_db: dict, lock: threading.Lock):
+    def __init__(self, interface: str, device_db: dict, lock: threading.Lock, shutdown_event=None):
         """
         interface: the network interface to sniff on (e.g., "eth0")
         device_db: a shared dictionary where devices will be stored (keyed by IP)
         lock: threading.Lock protecting device_db
+        shutdown_event: optional threading.Event for clean shutdown
         """
         self.interface = interface
         self.device_db = device_db
         self.lock = lock
+        self.shutdown_event = shutdown_event
         self.running = False
         self.logger = logging.getLogger('iseeyou.monitor')
 
@@ -154,6 +156,11 @@ class PassiveMonitor:
                       iface=self.interface,
                       stop_filter=self._stop_filter,
                       timeout=5)
+            except PermissionError as e:
+                self.logger.error("Permission denied for packet sniffing: %s. Passive monitoring disabled.", e)
+                self.logger.info("To enable passive monitoring, run with sudo or grant CAP_NET_RAW capability")
+                self.running = False
+                break
             except Exception as e:
                 self.logger.exception("Scapy sniffer encountered an error: %s. Restarting sniff loop.", e)
                 time.sleep(2)
@@ -169,3 +176,5 @@ class PassiveMonitor:
         """Gracefully stops the packet sniffing thread."""
         self.logger.info("Stopping passive monitor...")
         self.running = False
+        if self.shutdown_event:
+            self.shutdown_event.set()

@@ -42,10 +42,11 @@ class ActiveScanner:
     device_db is a shared dict (protected by lock externally) where scan results will be written.
     """
 
-    def __init__(self, subnet_cidr: str, device_db: dict, lock, probe_ports=None):
+    def __init__(self, subnet_cidr: str, device_db: dict, lock, probe_ports=None, shutdown_event=None):
         self.subnet = ipaddress.ip_network(subnet_cidr, strict=False)
         self.device_db = device_db
         self.lock = lock
+        self.shutdown_event = shutdown_event
         self.logger = logging.getLogger('iseeyou.scanner')
         self.running = threading.Event()
         self._threads = []

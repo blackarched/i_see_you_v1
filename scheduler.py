@@ -12,10 +12,11 @@ import logging
 class Scheduler:
     """Manages periodic execution of tasks in background threads."""
 
-    def __init__(self):
+    def __init__(self, shutdown_event=None):
         """Initializes the Scheduler."""
         self.tasks = {}  # Stores tasks with a unique name
         self.lock = threading.Lock()
+        self.shutdown_event = shutdown_event
         self.logger = logging.getLogger('scheduler')
 
     def add_task(self, name: str, func, interval: int):

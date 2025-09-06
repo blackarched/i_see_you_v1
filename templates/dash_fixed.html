@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberNet - Network Analysis Dashboard (Fixed)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono:wght@400&family=Orbitron:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cyber-cyan: #00ffff;
+            --cyber-pink: #ff0080;
+            --cyber-green: #00ff41;
+            --cyber-purple: #8a2be2;
+            --cyber-orange: #ff6600;
+            --bg-dark: #0a0a0a;
+            --bg-darker: #000000;
+            --glass-bg: rgba(0, 20, 40, 0.15);
+            --glow-blur: 0 0 10px;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            background: var(--bg-darker);
+            color: var(--cyber-cyan);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Enhanced Animated Background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            opacity: 0.1;
+            background-image: 
+                linear-gradient(var(--cyber-cyan) 1px, transparent 1px),
+                linear-gradient(90deg, var(--cyber-cyan) 1px, transparent 1px),
+                radial-gradient(circle at 25% 25%, var(--cyber-pink) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, var(--cyber-green) 1px, transparent 1px);
+            background-size: 50px 50px, 50px 50px, 100px 100px, 80px 80px;
+            animation: gridFlow 20s linear infinite;
+        }
+
+        @keyframes gridFlow {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--cyber-cyan);
+            border-radius: 50%;
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+        }
+
+        /* Login Screen */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .login-container {
+            text-align: center;
+            padding: 50px;
+            border: 2px solid var(--cyber-pink);
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 
+                0 0 50px var(--cyber-pink),
+                inset 0 0 20px rgba(255, 0, 128, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.03), transparent);
+            animation: loginScan 3s linear infinite;
+        }
+
+        @keyframes loginScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .login-logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5em;
+            font-weight: 900;
+            color: var(--cyber-pink);
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px var(--cyber-pink);
+            animation: logoPulse 3s ease-in-out infinite alternate;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes logoPulse {
+            0% { 
+                text-shadow: 0 0 30px var(--cyber-pink);
+                transform: scale(1);
+            }
+            100% { 
+                text-shadow: 0 0 50px var(--cyber-pink), 0 0 70px var(--cyber-pink);
+                transform: scale(1.05);
+            }
+        }
+
+        .login-input {
+            display: block;
+            width: 350px;
+            padding: 18px 25px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--cyber-cyan);
+            border-radius: 25px;
+            color: var(--cyber-cyan);
+            font-family: inherit;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-input:focus {
+            border-color: var(--cyber-pink);
+            box-shadow: 0 0 25px var(--cyber-pink);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .login-button {
+            padding: 18px 50px;
+            background: linear-gradient(45deg, transparent, rgba(255, 0, 128, 0.1));
+            border: 2px solid var(--cyber-pink);
+            color: var(--cyber-pink);
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--cyber-pink), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .login-button:hover {
+            background: var(--cyber-pink);
+            color: black;
+            box-shadow: 0 0 40px var(--cyber-pink);
+            transform: translateY(-2px);
+        }
+
+        .login-button:hover::before {
+            left: 100%;
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: none;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .dashboard.active {
+            display: block;
+            animation: dashboardLoad 0.8s ease-out;
+        }
+
+        @keyframes dashboardLoad {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Enhanced Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 25px 0;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-pink), var(--cyber-cyan)) 1;
+            position: relative;
+        }
+
+        .main-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3em;
+            font-weight: 900;
+            color: var(--cyber-pink);
+            text-shadow: 0 0 30px var(--cyber-pink);
+            letter-spacing: 4px;
+            position: relative;
+        }
+
+        .main-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyber-pink), transparent);
+            animation: titleScan 2s linear infinite;
+        }
+
+        @keyframes titleScan {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Interactive Street Map View */
+        .network-map {
+            height: 500px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            border: 2px solid var(--cyber-cyan);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+            box-shadow: 
+                0 0 30px var(--cyber-cyan),
+                inset 0 0 50px rgba(0, 255, 255, 0.1);
+        }
+
+        .network-map:active {
+            cursor: grabbing;
+        }
+
+        .street-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px),
+                linear-gradient(rgba(0, 255, 255, 0.1) 3px, transparent 3px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 3px, transparent 3px);
+            background-size: 50px 50px, 50px 50px, 200px 200px, 200px 200px;
+            animation: mapFlow 30s linear infinite;
+            transform-origin: center;
+        }
+
+        @keyframes mapFlow {
+            0% { transform: translate(-25%, -25%) rotate(0deg); }
+            100% { transform: translate(-25%, -25%) rotate(0.5deg); }
+        }
+
+        .network-node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .network-node::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            opacity: 0;
+            animation: nodePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes nodePulse {
+            0%, 100% { transform: scale(1); opacity: 0; }
+            50% { transform: scale(2); opacity: 0.5; }
+        }
+
+        .network-node.gateway {
+            width: 20px;
+            height: 20px;
+            background: var(--cyber-pink);
+            box-shadow: 0 0 20px var(--cyber-pink);
+            animation: gatewayPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes gatewayPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); box-shadow: 0 0 30px var(--cyber-pink); }
+        }
+
+        .network-node.device {
+            background: var(--cyber-green);
+            box-shadow: 0 0 15px var(--cyber-green);
+        }
+
+        .network-node.mobile {
+            background: var(--cyber-orange);
+            box-shadow: 0 0 15px var(--cyber-orange);
+            animation: mobileMove 8s ease-in-out infinite;
+        }
+
+        @keyframes mobileMove {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(10px) translateY(-5px); }
+            50% { transform: translateX(5px) translateY(10px); }
+            75% { transform: translateX(-5px) translateY(5px); }
+        }
+
+        .network-node:hover {
+            transform: scale(1.5);
+            z-index: 20;
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-green));
+            opacity: 0.6;
+            z-index: 5;
+            animation: dataFlow 3s linear infinite;
+        }
+
+        @keyframes dataFlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        /* Building structures on map */
+        .building {
+            position: absolute;
+            background: rgba(0, 50, 100, 0.3);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        /* Stats Panels */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--cyber-cyan);
+            border-radius: 10px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transition: left 0.8s ease;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-title {
+            color: var(--cyber-cyan);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--cyber-green);
+            text-shadow: 0 0 15px var(--cyber-green);
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* Tabbed Interface */
+        .tab-container {
+            margin-top: 40px;
+            background: var(--glass-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid var(--cyber-cyan);
+        }
+
+        .tab-nav {
+            display: flex;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid var(--cyber-cyan);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            color: var(--cyber-cyan);
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--cyber-pink);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--cyber-pink);
+            background: rgba(255, 0, 128, 0.1);
+            text-shadow: 0 0 15px var(--cyber-pink);
+        }
+
+        .tab-btn.active::after {
+            transform: scaleX(1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: tabFade 0.5s ease-in-out;
+        }
+
+        @keyframes tabFade {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Device List */
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .device-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--cyber-green);
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyber-green), var(--cyber-cyan));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .device-card:hover {
+            border-color: var(--cyber-pink);
+            box-shadow: 0 0 25px rgba(255, 0, 128, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .device-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .device-card.selected {
+            border-color: var(--cyber-pink);
+            background: rgba(255, 0, 128, 0.1);
+        }
+
+        /* Terminal-style logs */
+        .terminal {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--cyber-green);
+            border-radius: 10px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            font-family: 'Share Tech Mono', monospace;
+            position: relative;
+        }
+
+        .terminal::before {
+            content: '$ CYBERNET_TERMINAL_v2.1.3 - MONITORING MODE';
+            position: sticky;
+            top: 0;
+            display: block;
+            color: var(--cyber-green);
+            border-bottom: 1px solid var(--cyber-green);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .log-line {
+            margin: 8px 0;
+            padding: 5px 0;
+            animation: typeLine 0.5s ease-out;
+        }
+
+        @keyframes typeLine {
+            0% { opacity: 0; transform: translateX(-10px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-line.info { color: var(--cyber-cyan); }
+        .log-line.success { color: var(--cyber-green); }
+        .log-line.warning { color: var(--cyber-orange); }
+        .log-line.error { color: var(--cyber-pink); }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-nav {
+                flex-direction: column;
+            }
+
+            .main-title {
+                font-size: 2em;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--cyber-cyan), var(--cyber-pink));
+            border-radius: 5px;
+            box-shadow: 0 0 10px var(--cyber-cyan);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--cyber-pink), var(--cyber-cyan));
+            box-shadow: 0 0 15px var(--cyber-pink);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="cyber-grid"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Login Screen -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-container">
+            <div class="login-logo">CYBERNET</div>
+            <input type="text" class="login-input" placeholder="[ USERNAME ]" id="username">
+            <input type="password" class="login-input" placeholder="[ PASSWORD ]" id="password">
+            <button class="login-button" onclick="authenticate()">INITIALIZE CONNECTION</button>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="main-title">CYBERNET</div>
+            <div style="text-align: right; color: var(--cyber-green);">
+                <div>NEURAL INTERFACE: <span style="color: var(--cyber-cyan);">ACTIVE</span></div>
+                <div>USER: <span id="currentUser" style="color: var(--cyber-pink);">ADMIN</span></div>
+                <button onclick="logout()" style="margin-top: 10px; padding: 8px 16px; background: transparent; border: 1px solid var(--cyber-pink); color: var(--cyber-pink); border-radius: 5px; cursor: pointer; font-family: inherit;">DISCONNECT</button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Network Nodes</div>
+                <div class="stat-value" id="nodeCount">247</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Active Connections</div>
+                <div class="stat-value" id="connectionCount">89</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Data Throughput</div>
+                <div class="stat-value" id="throughput">1.2GB/s</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">System Load</div>
+                <div class="stat-value" id="systemLoad">34%</div>
+            </div>
+        </div>
+
+        <!-- Street Map Network View -->
+        <div class="network-map" id="networkMap">
+            <div class="street-grid"></div>
+
+            <!-- Buildings -->
+            <div class="building" style="top: 20%; left: 15%; width: 80px; height: 60px;"></div>
+            <div class="building" style="top: 40%; left: 60%; width: 100px; height: 80px;"></div>
+            <div class="building" style="top: 70%; left: 25%; width: 90px; height: 70px;"></div>
+
+            <!-- Network Nodes -->
+            <div class="network-node gateway" style="top: 50%; left: 50%;" data-info="Main Gateway - 192.168.1.1"></div>
+            <div class="network-node device" style="top: 30%; left: 20%;" data-info="Workstation Alpha - 192.168.1.15"></div>
+            <div class="network-node device" style="top: 60%; left: 75%;" data-info="Server Beta - 192.168.1.50"></div>
+            <div class="network-node mobile" style="top: 40%; left: 30%;" data-info="Mobile Device - 192.168.1.105"></div>
+            <div class="network-node device" style="top: 80%; left: 40%;" data-info="IoT Device - 192.168.1.200"></div>
+
+            <!-- Connection Lines -->
+            <div class="connection-line" style="top: 50%; left: 50%; width: 150px; transform: rotate(-45deg);"></div>
+            <div class="connection-line" style="top: 50%; left: 50%; width: 200px; transform: rotate(25deg);"></div>
+            <div class="connection-line" style="top: 50%; left: 50%; width: 120px; transform: rotate(-20deg);"></div>
+        </div>
+
+        <!-- Tabbed Interface -->
+        <div class="tab-container">
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="network" onclick="switchTab('network', this)">Network Overview</button>
+                <button class="tab-btn" data-tab="devices" onclick="switchTab('devices', this)">Device Registry</button>
+                <button class="tab-btn" data-tab="monitoring" onclick="switchTab('monitoring', this)">System Monitor</button>
+                <button class="tab-btn" data-tab="logs" onclick="switchTab('logs', this)">Activity Logs</button>
+                <button class="tab-btn" data-tab="synFlood" onclick="switchTab('synFlood', this)">SYN Flood</button>
+                <button class="tab-btn" data-tab="dnsSpoofing" onclick="switchTab('dnsSpoofing', this)">DNS Spoofing</button>
+                <button class="tab-btn" data-tab="mitm" onclick="switchTab('mitm', this)">MITM</button>
+                <button class="tab-btn" data-tab="passwordCracking" onclick="switchTab('passwordCracking', this)">Password Cracking</button>
+                <button class="tab-btn" data-tab="phishing" onclick="switchTab('phishing', this)">Phishing</button>
+            </div>
+
+            <!-- Network Tab -->
+            <div class="tab-content active" id="networkTab">
+                <div class="device-grid">
+                    <div class="device-card" onclick="selectDevice(this)">
+                        <h3 style="color: var(--cyber-pink); margin-bottom: 15px;">Gateway Router</h3>
+                        <div style="color: var(--cyber-cyan);">IP: 192.168.1.1</div>
+                        <div style="color: var(--cyber-green);">MAC: 00:1A:2B:3C:4D:5E</div>
+                        <div style="color: var(--cyber-orange);">Status: Online</div>
+                    </div>
+                    <div class="device-card" onclick="selectDevice(this)">
+                        <h3 style="color: var(--cyber-pink); margin-bottom: 15px;">Workstation Alpha</h3>
+                        <div style="color: var(--cyber-cyan);">IP: 192.168.1.15</div>
+                        <div style="color: var(--cyber-green);">MAC: 2A:3B:4C:5D:6E:7F</div>
+                        <div style="color: var(--cyber-orange);">Status: Active</div>
+                    </div>
+                    <div class="device-card" onclick="selectDevice(this)">
+                        <h3 style="color: var(--cyber-pink); margin-bottom: 15px;">Server Beta</h3>
+                        <div style="color: var(--cyber-cyan);">IP: 192.168.1.50</div>
+                        <div style="color: var(--cyber-green);">MAC: 3B:4C:5D:6E:7F:8A</div>
+                        <div style="color: var(--cyber-orange);">Status: Running</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Devices Tab -->
+            <div class="tab-content" id="devicesTab">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="padding: 15px; border: 1px solid var(--cyber-cyan); border-radius: 8px;">
+                        <div style="color: var(--cyber-pink); font-weight: bold;">Total Devices</div>
+                        <div style="color: var(--cyber-green); font-size: 1.5em;">24</div>
+                    </div>
+                    <div style="padding: 15px; border: 1px solid var(--cyber-cyan); border-radius: 8px;">
+                        <div style="color: var(--cyber-pink); font-weight: bold;">Online</div>
+                        <div style="color: var(--cyber-green); font-size: 1.5em;">19</div>
+                    </div>
+                    <div style="padding: 15px; border: 1px solid var(--cyber-cyan); border-radius: 8px;">
+                        <div style="color: var(--cyber-pink); font-weight: bold;">Offline</div>
+                        <div style="color: var(--cyber-orange); font-size: 1.5em;">5</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Tab -->
+            <div class="tab-content" id="monitoringTab">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="color: var(--cyber-cyan); margin-bottom: 15px;">System Resources</h3>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">CPU Usage:</div>
+                            <div style="color: var(--cyber-cyan);">45%</div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Memory Usage:</div>
+                            <div style="color: var(--cyber-cyan);">60%</div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Disk Usage:</div>
+                            <div style="color: var(--cyber-cyan);">75%</div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Network I/O:</div>
+                            <div style="color: var(--cyber-cyan);">1.2GB/s</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--cyber-cyan); margin-bottom: 15px;">Performance Metrics</h3>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Response Time:</div>
+                            <div style="color: var(--cyber-cyan);">12ms</div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Packet Loss:</div>
+                            <div style="color: var(--cyber-cyan);">0.02%</div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Uptime:</div>
+                            <div style="color: var(--cyber-cyan);">99.8%</div>
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <div style="color: var(--cyber-green);">Failure Rate:</div>
+                            <div style="color: var(--cyber-cyan);">0.01%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div class="tab-content" id="logsTab">
+                <div class="terminal" id="terminal">
+                    <div class="log-line info">[2024-01-15 14:32:15] Network interface initialized</div>
+                    <div class="log-line success">[2024-01-15 14:32:16] Connection established to gateway</div>
+                    <div class="log-line info">[2024-01-15 14:32:18] Scanning network topology...</div>
+                    <div class="log-line success">[2024-01-15 14:32:22] 24 devices discovered</div>
+                    <div class="log-line warning">[2024-01-15 14:32:45] Unusual traffic pattern detected on port 8080</div>
+                    <div class="log-line info">[2024-01-15 14:33:01] System monitoring active</div>
+                    <div class="log-line success">[2024-01-15 14:33:15] All systems operational</div>
+                </div>
+            </div>
+
+            <!-- SYN Flood -->
+            <div class="tab-content" id="synFloodTab">
+                <h3 style="color: var(--cyber-pink); margin-bottom: 20px;">SYN Flood Module</h3>
+                <div style="color: var(--cyber-cyan);">
+                    <p>SYN Flood is a type of DoS attack that aims to overload a target machine's ability to handle incoming connections.</p>
+                    <p>Target IP: <input type="text" id="synTargetIP" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <p>Packet Rate: <input type="number" id="synPacketRate" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;" value="1000"></p>
+                    <button onclick="simulateAttack('SYN Flood')" style="margin-top: 20px; padding: 10px 20px; background: var(--cyber-pink); color: white; border: none; border-radius: 5px; cursor: pointer;">LAUNCH ATTACK</button>
+                </div>
+            </div>
+
+            <!-- DNS Spoofing -->
+            <div class="tab-content" id="dnsSpoofingTab">
+                <h3 style="color: var(--cyber-pink); margin-bottom: 20px;">DNS Spoofing Module</h3>
+                <div style="color: var(--cyber-cyan);">
+                    <p>DNS Spoofing, or DNS Cache Poisoning, involves redirecting traffic to a malicious site by altering DNS records.</p>
+                    <p>Target Domain: <input type="text" id="dnsTargetDomain" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <p>Fake IP: <input type="text" id="dnsFakeIP" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <button onclick="simulateAttack('DNS Spoofing')" style="margin-top: 20px; padding: 10px 20px; background: var(--cyber-pink); color: white; border: none; border-radius: 5px; cursor: pointer;">LAUNCH ATTACK</button>
+                </div>
+            </div>
+
+            <!-- Man-in-the-Middle (MITM) -->
+            <div class="tab-content" id="mitmTab">
+                <h3 style="color: var(--cyber-pink); margin-bottom: 20px;">Man-in-the-Middle Module</h3>
+                <div style="color: var(--cyber-cyan);">
+                    <p>MITM attacks intercept and possibly alter the communication between two parties without their knowledge.</p>
+                    <p>Target IP 1: <input type="text" id="mitmTargetIP1" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <p>Target IP 2: <input type="text" id="mitmTargetIP2" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <button onclick="simulateAttack('MITM')" style="margin-top: 20px; padding: 10px 20px; background: var(--cyber-pink); color: white; border: none; border-radius: 5px; cursor: pointer;">LAUNCH ATTACK</button>
+                </div>
+            </div>
+
+            <!-- Password Cracking -->
+            <div class="tab-content" id="passwordCrackingTab">
+                <h3 style="color: var(--cyber-pink); margin-bottom: 20px;">Password Cracking Module</h3>
+                <div style="color: var(--cyber-cyan);">
+                    <p>Password Cracking uses brute force or dictionary attacks to guess user passwords.</p>
+                    <p>Target IP: <input type="text" id="pcTargetIP" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <p>Wordlist: <input type="file" id="pcWordlist" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <button onclick="simulateAttack('Password Cracking')" style="margin-top: 20px; padding: 10px 20px; background: var(--cyber-pink); color: white; border: none; border-radius: 5px; cursor: pointer;">LAUNCH ATTACK</button>
+                </div>
+            </div>
+
+            <!-- Phishing -->
+            <div class="tab-content" id="phishingTab">
+                <h3 style="color: var(--cyber-pink); margin-bottom: 20px;">Phishing Module</h3>
+                <div style="color: var(--cyber-cyan);">
+                    <p>Phishing involves creating fake web pages to trick users into entering sensitive information.</p>
+                    <p>Target Email: <input type="email" id="phishingTargetEmail" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <p>Phishing Link: <input type="text" id="phishingLink" style="color: var(--cyber-cyan); background: transparent; border: 1px solid var(--cyber-pink); border-radius: 5px; padding: 5px;"></p>
+                    <button onclick="simulateAttack('Phishing')" style="margin-top: 20px; padding: 10px 20px; background: var(--cyber-pink); color: white; border: none; border-radius: 5px; cursor: pointer;">LAUNCH ATTACK</button>
+                </div>
+            </div>
+
+            <!-- Additional Attack Modules -->
+            <!-- You can add more attack modules here following the same structure -->
+
+        </div>
+    </div>
+
+    <script>
+        // Particle system
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+
+                const colors = ['var(--cyber-cyan)', 'var(--cyber-pink)', 'var(--cyber-green)'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                container.appendChild(particle);
+            }
+        }
+
+        // Safe authenticate (UI-only)
+        function authenticate() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('errorMessage');
+
+            if (username && password) {
+                document.getElementById('currentUser').textContent = username.toUpperCase();
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+
+                // Start animated counters
+                animateCounters();
+                updateSystemStats();
+
+                addLog('success', `User ${username} authenticated (UI-only).`);
+            } else {
+                errorMsg.textContent = 'Access credentials required';
+                errorMsg.style.color = 'var(--cyber-pink)';
+                errorMsg.style.marginTop = '15px';
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').textContent = '';
+
+            addLog('info', 'User logged out.');
+        }
+
+        // Tab switching - robust and usable from keyboard shortcuts
+        function switchTab(tabName, btnEl) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Determine button element
+            let btn = btnEl;
+            if (!btn) {
+                btn = document.querySelector(`.tab-btn[data-tab='${tabName}']`);
+            }
+            if (btn) btn.classList.add('active');
+
+            const target = document.getElementById(tabName + 'Tab');
+            if (target) {
+                target.classList.add('active');
+            } else {
+                // Fallback: if user passed 'logs' map to logsTab etc.
+                const alt = { 'logs': 'logsTab', 'network': 'networkTab' }[tabName];
+                if (alt) document.getElementById(alt).classList.add('active');
+            }
+
+            addLog('info', `Switched to tab: ${tabName}`);
+        }
+
+        // Device selection
+        function selectDevice(element) {
+            document.querySelectorAll('.device-card').forEach(card => card.classList.remove('selected'));
+            element.classList.add('selected');
+
+            // show a short log for UI feedback
+            const title = element.querySelector('h3') ? element.querySelector('h3').textContent : 'Device';
+            addLog('info', `Selected device: ${title}`);
+        }
+
+        // Animated counters
+        function animateCounters() {
+            const counters = [
+                { element: 'nodeCount', target: 247, current: 0 },
+                { element: 'connectionCount', target: 89, current: 0 },
+                { element: 'systemLoad', target: 34, current: 0, suffix: '%' }
+            ];
+
+            counters.forEach(counter => {
+                const increment = Math.max(1, Math.floor(counter.target / 50));
+                const timer = setInterval(() => {
+                    counter.current += increment;
+                    if (counter.current >= counter.target) {
+                        counter.current = counter.target;
+                        clearInterval(timer);
+                    }
+                    const el = document.getElementById(counter.element);
+                    if (el) el.textContent = Math.floor(counter.current) + (counter.suffix || '');
+                }, 50);
+            });
+        }
+
+        // System stats updates (UI-only, randomized)
+        function updateSystemStats() {
+            // Update every 3s
+            setInterval(() => {
+                const stats = {
+                    nodeCount: Math.floor(Math.random() * 10) + 245,
+                    connectionCount: Math.floor(Math.random() * 20) + 80,
+                    systemLoad: Math.floor(Math.random() * 20) + 25
+                };
+
+                Object.entries(stats).forEach(([key, value]) => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.textContent = value + (key === 'systemLoad' ? '%' : '');
+                    }
+                });
+
+                // Update throughput with realistic networking values
+                const throughputValues = ['1.2GB/s', '1.5GB/s', '0.9GB/s', '2.1GB/s', '1.8GB/s'];
+                const tpEl = document.getElementById('throughput');
+                if (tpEl) tpEl.textContent = throughputValues[Math.floor(Math.random() * throughputValues.length)];
+
+            }, 3000);
+        }
+
+        // Network map interactions
+        function initNetworkMap() {
+            const map = document.getElementById('networkMap');
+            const nodes = map.querySelectorAll('.network-node');
+
+            nodes.forEach(node => {
+                node.addEventListener('mouseenter', (e) => {
+                    const info = e.target.getAttribute('data-info');
+                    if (info) {
+                        // Remove any existing tooltip to avoid duplicates
+                        const existing = document.querySelector('.node-tooltip');
+                        if (existing) existing.remove();
+
+                        // Create tooltip (purely visual)
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'node-tooltip';
+                        tooltip.textContent = info;
+                        tooltip.style.cssText = `
+                            position: absolute;
+                            background: rgba(0, 0, 0, 0.9);
+                            color: var(--cyber-cyan);
+                            padding: 8px 12px;
+                            border: 1px solid var(--cyber-cyan);
+                            border-radius: 5px;
+                            font-size: 12px;
+                            pointer-events: none;
+                            z-index: 1000;
+                            box-shadow: 0 0 15px var(--cyber-cyan);
+                        `;
+                        document.body.appendChild(tooltip);
+
+                        // Position tooltip
+                        const rect = e.target.getBoundingClientRect();
+                        tooltip.style.left = (rect.right + 10) + 'px';
+                        tooltip.style.top = (rect.top) + 'px';
+                    }
+                });
+
+                node.addEventListener('mouseleave', () => {
+                    const tooltip = document.querySelector('.node-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
+            });
+
+            // Map dragging simulation (visual only)
+            let isDragging = false;
+            let startX, startY;
+
+            map.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                map.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+                    // Visual feedback only - no actual movement
+                    map.style.filter = `hue-rotate(${deltaX}deg) brightness(${1 + deltaY * 0.001})`;
+                }
+            });
+
+            const stopDrag = () => {
+                isDragging = false;
+                map.style.cursor = 'grab';
+                map.style.filter = 'none';
+            };
+
+            window.addEventListener('mouseup', stopDrag);
+            map.addEventListener('mouseleave', stopDrag);
+        }
+
+        // Logging helper - appends to the terminal window
+        function addLog(level, text) {
+            const terminal = document.getElementById('terminal');
+            if (!terminal) return;
+            const div = document.createElement('div');
+            div.className = 'log-line ' + (level || 'info');
+            const ts = new Date().toISOString().replace('T', ' ').split('.')[0];
+            div.textContent = `[${ts}] ${text}`;
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Simulate 'attack' modules - SAFE UI-only implementations
+        function simulateAttack(moduleName) {
+            // Collect some quick UI inputs for context (but do NOT execute anything network-related)
+            let target = 'N/A';
+            try {
+                switch (moduleName) {
+                    case 'SYN Flood':
+                        target = document.getElementById('synTargetIP').value || 'N/A';
+                        break;
+                    case 'DNS Spoofing':
+                        target = (document.getElementById('dnsTargetDomain').value || 'N/A') + ' -> ' + (document.getElementById('dnsFakeIP').value || 'N/A');
+                        break;
+                    case 'MITM':
+                        target = (document.getElementById('mitmTargetIP1').value || 'N/A') + ' <-> ' + (document.getElementById('mitmTargetIP2').value || 'N/A');
+                        break;
+                    case 'Password Cracking':
+                        target = document.getElementById('pcTargetIP').value || 'N/A';
+                        const fileInput = document.getElementById('pcWordlist');
+                        if (fileInput && fileInput.files && fileInput.files.length) {
+                            target += ` (wordlist: ${fileInput.files[0].name})`;
+                        }
+                        break;
+                    case 'Phishing':
+                        target = document.getElementById('phishingTargetEmail').value || 'N/A';
+                        break;
+                    default:
+                        target = 'N/A';
+                }
+            } catch (e) {
+                target = 'N/A';
+            }
+
+            // IMPORTANT: This is a UI-only simulation. Do NOT run real network attacks from this UI.
+            addLog('warning', `SIMULATION: ${moduleName} requested against ${target} — UI-only. No network traffic generated.`);
+
+            // Friendly modal to reinforce safe usage
+            const msg = `${moduleName} simulation executed for target: ${target}\n\nThis dashboard provides UI simulations only. Do not use this tool to perform malicious or illegal activity.`;
+            alert(msg);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            const loginOverlay = document.getElementById('loginOverlay');
+            const isOverlayVisible = getComputedStyle(loginOverlay).display !== 'none';
+
+            if (e.key === 'Enter' && isOverlayVisible) {
+                authenticate();
+            }
+
+            // Tab shortcuts (Ctrl+1..9)
+            if (e.ctrlKey) {
+                const shortcuts = {
+                    '1': 'network',
+                    '2': 'devices',
+                    '3': 'monitoring',
+                    '4': 'logs',
+                    '5': 'synFlood',
+                    '6': 'dnsSpoofing',
+                    '7': 'mitm',
+                    '8': 'passwordCracking',
+                    '9': 'phishing'
+                };
+                if (shortcuts[e.key]) {
+                    const tabName = shortcuts[e.key];
+                    const btn = document.querySelector(`.tab-btn[data-tab='${tabName}']`);
+                    if (btn) btn.click();
+                    e.preventDefault();
+                }
+            }
+        });
+
+        // Add dynamic data loading framework
+        <script>
+        // Global auth token from login
+        let authToken = localStorage.getItem('iseeyou_token') || '';
+
+        // API configuration
+        const API_CONFIG = {
+            devices: '/api/devices',
+            network: '/api/network',
+            alerts: '/api/alerts',
+            scan: '/api/scan',
+            login: '/api/login'
+        };
+
+        // Data loading functions with error handling
+        async function fetchData(endpoint, options = {}) {
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    ...options
+                });
+                
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Failed to fetch ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        // Device list population (preserves all existing CSS classes)
+        async function loadDevices() {
+            const devices = await fetchData(API_CONFIG.devices);
+            if (!devices) return;
+
+            const deviceGrid = document.getElementById('device-grid');
+            deviceGrid.innerHTML = devices.map(device => `
+                <div class="device-card" data-mac="${device.mac}">
+                    <div class="device-icon ${device.type.toLowerCase()}">
+                        ${getDeviceIcon(device.type)}
+                    </div>
+                    <h3 class="device-name">${device.hostname || 'Unknown'}</h3>
+                    <p class="device-ip">${device.ip}</p>
+                    <div class="signal-strength" data-strength="${device.signal || 0}">
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Helper function for device icons (matches existing visual style)
+        function getDeviceIcon(type) {
+            const icons = {
+                'desktop': '🖥️',
+                'laptop': '💻',
+                'phone': '📱',
+                'router': '🖧',
+                'server': '🖥️',
+                'default': '❓'
+            };
+            return icons[type.toLowerCase()] || icons.default;
+        }
+
+        // Initialize all dashboard components
+        function initDashboard() {
+            loadDevices();
+            loadNetworkStats();
+            loadAlerts();
+            setupEventHandlers();
+            
+            // Refresh data every 30 seconds
+            setInterval(() => {
+                loadDevices();
+                loadNetworkStats();
+            }, 30000);
+        }
+
+        // Network stats integration
+        async function loadNetworkStats() {
+            const stats = await fetchData(API_CONFIG.network);
+            if (!stats) return;
+
+            // Update bandwidth meter (preserves animation classes)
+            const meter = document.getElementById('bandwidth-meter');
+            meter.style.width = `${Math.min(stats.bandwidth_usage, 100)}%`;
+            meter.className = `bandwidth-fill ${stats.bandwidth_usage > 80 ? 'warning' : ''}`;
+            document.getElementById('bandwidth-value').textContent = `${stats.bandwidth_usage}%`;
+
+            // Update connection stats
+            document.getElementById('upload-speed').textContent = `${stats.upload_speed} Mbps`;
+            document.getElementById('download-speed').textContent = `${stats.download_speed} Mbps`;
+            document.getElementById('latency-value').textContent = `${stats.latency} ms`;
+            
+            // Update network map connections
+            updateNetworkMap(stats.topology);
+        }
+
+        // Threat alerts integration
+        async function loadAlerts() {
+            const alerts = await fetchData(API_CONFIG.alerts);
+            if (!alerts) return;
+
+            const alertContainer = document.getElementById('threat-alerts');
+            alertContainer.innerHTML = alerts.slice(0, 5).map(alert => `
+                <div class="alert-item ${alert.severity}" data-id="${alert.id}">
+                    <span class="alert-icon">${getAlertIcon(alert.type)}</span>
+                    <div class="alert-content">
+                        <h4>${alert.title}</h4>
+                        <p>${alert.description}</p>
+                        <span class="alert-time">${formatTime(alert.timestamp)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Scan controls integration
+        function setupEventHandlers() {
+            // Quick Scan button
+            document.getElementById('quick-scan').addEventListener('click', async () => {
+                const result = await fetchData(API_CONFIG.scan, {
+                    method: 'POST',
+                    body: JSON.stringify({ type: 'quick' })
+                });
+                if (result) {
+                    addLog('info', 'Quick scan initiated');
+                    document.getElementById('scan-status').textContent = 'Scanning...';
+                    document.getElementById('scan-status').className = 'scan-status active';
+                }
+            });
+
+            // Full Scan button
+            document.getElementById('full-scan').addEventListener('click', async () => {
+                const result = await fetchData(API_CONFIG.scan, {
+                    method: 'POST',
+                    body: JSON.stringify({ type: 'full' })
+                });
+                if (result) {
+                    addLog('info', 'Full scan initiated');
+                    document.getElementById('scan-status').textContent = 'Deep scanning...';
+                    document.getElementById('scan-status').className = 'scan-status active';
+                }
+            });
+
+            // Authentication handler
+            document.getElementById('auth-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await authenticate();
+            });
+        }
+
+        // Authentication integration
+        async function authenticate() {
+            const tokenInput = document.getElementById('auth-token');
+            const response = await fetch(API_CONFIG.login, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: tokenInput.value })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                authToken = data.token;
+                localStorage.setItem('iseeyou_token', authToken);
+                document.getElementById('auth-modal').style.display = 'none';
+                initDashboard();
+                addLog('success', 'Authentication successful');
+            } else {
+                addLog('error', 'Authentication failed');
+                tokenInput.classList.add('error');
+                setTimeout(() => tokenInput.classList.remove('error'), 1000);
+            }
+        }
+
+        // Helper functions
+        function getAlertIcon(type) {
+            const icons = {
+                'intrusion': '⚠️',
+                'malware': '🦠',
+                'anomaly': '🔍',
+                'default': '❗'
+            };
+            return icons[type.toLowerCase()] || icons.default;
+        }
+
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function addLog(type, message) {
+            const log = document.getElementById('system-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.prepend(entry);
+            if (log.children.length > 20) log.removeChild(log.lastChild);
+        }
+
+        // Initialize network map visualization (preserves existing animation)
+        function updateNetworkMap(topology) {
+            const map = document.getElementById('network-map');
+            // Clear existing nodes while keeping the background animation
+            Array.from(map.children).forEach(child => {
+                if (child.classList.contains('network-node')) child.remove();
+            });
+
+            // Add new nodes based on actual topology
+            topology.nodes.forEach(node => {
+                const nodeElement = document.createElement('div');
+                nodeElement.className = `network-node ${node.type}`;
+                nodeElement.style.left = `${node.x}%`;
+                nodeElement.style.top = `${node.y}%`;
+                nodeElement.innerHTML = node.icon;
+                map.appendChild(nodeElement);
+            });
+        }
+
+        // Call initialization when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

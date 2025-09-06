@@ -38,7 +38,7 @@ from typing import Dict, Any
 # Import project components
 try:
     from monitor import PassiveMonitor
-    from scanner import ActiveScanner
+    from scanner import ActiveScanner as NetworkScanner
     from scheduler import Scheduler
     import dashboard
 except Exception as e:
@@ -98,11 +98,23 @@ def require_root_or_capabilities():
         return
     try:
         if os.geteuid() == 0:
+            logging.info("Running as root - packet sniffing should work")
             return
     except Exception:
         return
-    # Not root. Warn: sniffing may fail without CAP_NET_RAW.
-    logging.warning("Process not running as root. Passive monitor may require CAP_NET_RAW or root privileges to sniff packets. See README.")
+    
+    # Check for CAP_NET_RAW capability
+    try:
+        import subprocess
+        result = subprocess.run(['getcap', sys.executable], capture_output=True, text=True)
+        if 'cap_net_raw' in result.stdout:
+            logging.info("CAP_NET_RAW capability detected - packet sniffing should work")
+        else:
+            logging.warning("No CAP_NET_RAW capability found. Passive monitor may not work.")
+            logging.info("To enable packet sniffing without sudo, run: ./setup_capabilities.sh")
+    except Exception:
+        logging.warning("Could not check capabilities. Passive monitor may require root privileges.")
+        logging.info("To enable packet sniffing without sudo, run: ./setup_capabilities.sh")
 
 def main():
     configure_logging(level=LOG_LEVEL)
@@ -139,28 +151,52 @@ def main():
     require_root_or_capabilities()
 
     # Read network config (interface, scan interval) from config or env
-    net_iface = os.environ.get("ISEEYOU_INTERFACE") or config.get("network", "interface", fallback="wlan0")
+    net_iface = os.environ.get("ISEEYOU_INTERFACE") or config.get("network", "interface", fallback="wlx002e2dfd022f")
     scan_interval = int(os.environ.get("ISEEYOU_SCAN_INTERVAL") or config.get("network", "scan_interval", fallback="300"))
+    
+    # Validate interface exists
+    try:
+        import subprocess
+        result = subprocess.run(['ip', 'link', 'show', net_iface], 
+                              capture_output=True, text=True, timeout=5)
+        if result.returncode != 0:
+            logging.warning("Interface %s not found, falling back to first available interface", net_iface)
+            # Try to find first available interface
+            result = subprocess.run(['ip', 'link', 'show'], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                import re
+                interfaces = re.findall(r'^\d+: (\w+):', result.stdout, re.MULTILINE)
+                if interfaces:
+                    net_iface = interfaces[0]
+                    logging.info("Using interface: %s", net_iface)
+                else:
+                    logging.error("No network interfaces found")
+                    return 1
+            else:
+                logging.error("Cannot enumerate network interfaces")
+                return 1
+    except Exception as e:
+        logging.warning("Could not validate interface %s: %s", net_iface, e)
 
     # Instantiate components
     try:
-        monitor = PassiveMonitor(interface=net_iface, device_db=device_db, lock=db_lock)
+        monitor = PassiveMonitor(interface=net_iface, device_db=device_db, lock=db_lock, shutdown_event=shutdown_event)
         logging.info("PassiveMonitor instantiated for interface: %s", net_iface)
     except Exception as e:
         logging.exception("Failed to instantiate PassiveMonitor: %s", e)
         raise
 
     try:
-        # ActiveScanner needs subnet_cidr, device_db, lock, and optionally probe_ports
-        subnet_cidr = os.environ.get("ISEEYOU_SUBNET") or config.get("network", "subnet", fallback="192.168.1.0/24")
-        scanner = ActiveScanner(subnet_cidr=subnet_cidr, device_db=device_db, lock=db_lock)
-        logging.info("ActiveScanner instantiated")
+        # Get subnet from config or use default
+        subnet = config.get("network", "subnet", fallback="192.168.1.0/24")
+        scanner = NetworkScanner(subnet_cidr=subnet, device_db=device_db, lock=db_lock, shutdown_event=shutdown_event)
+        logging.info("NetworkScanner instantiated for subnet: %s", subnet)
     except Exception as e:
-        logging.exception("Failed to instantiate ActiveScanner: %s", e)
+        logging.exception("Failed to instantiate NetworkScanner: %s", e)
         raise
 
     try:
-        scheduler = Scheduler()
+        scheduler = Scheduler(shutdown_event=shutdown_event)
         logging.info("Scheduler instantiated")
     except Exception as e:
         logging.exception("Failed to instantiate Scheduler: %s", e)
@@ -176,7 +212,7 @@ def main():
         raise
 
     # Create Flask app (attach shutdown_event so SSE can close on shutdown)
-    app = dashboard.create_app(attach_shutdown_event=shutdown_event)
+    app = dashboard.create_app(device_database=device_db, attach_shutdown_event=shutdown_event)
 
     # Start background components
     running_threads = {}
@@ -200,9 +236,9 @@ def main():
             for t in worker_threads:
                 if isinstance(t, threading.Thread):
                     running_threads[f"scanner_{t.name}"] = t
-        logging.info("ActiveScanner started: %d threads", len(worker_threads) if worker_threads else 0)
+        logging.info("NetworkScanner started: %d threads", len(worker_threads) if worker_threads else 0)
     except Exception as e:
-        logging.exception("Failed to start ActiveScanner: %s", e)
+        logging.exception("Failed to start NetworkScanner: %s", e)
         raise
 
     # Example: schedule periodic active scan via scheduler using scanner.scan_once if available
